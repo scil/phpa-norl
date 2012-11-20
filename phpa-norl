@@ -203,7 +203,7 @@
         $x = ob_get_contents();
         ob_end_clean();
         $x = strip_tags($x);
-        $x = explode(PHP_EOL, $x);
+        $x = explode("\n", $x);
         $s = array("Build Date => ", "Build Date ");
         foreach ($x as $i)
             foreach ($s as $j)
