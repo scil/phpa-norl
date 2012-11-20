@@ -214,9 +214,9 @@
 
     function __phpa__setup()
     {
-        if (version_compare(phpversion(), "4.3.0", "<"))
+        if (version_compare(phpversion(), "5.2.0", "<"))
         {
-            echo "PHP 4.3.0 or above is required.\n";
+            echo "PHP 5.2.0 or above is required.\n";
             exit(111);
         }
         error_reporting(E_ALL ^ E_NOTICE);
@@ -231,11 +231,16 @@
 	// here we can do any last operations
 	// before the script is complete.
 	function shutdown() {
-		global $gEvalError, $gErrorScript;
-		if ( $gEvalError ) {
-			echo PHP_EOL;
-			echo PHP_EOL;
-			echo 'eval() error: ' . $gErrorScript, PHP_EOL;
-		}
+		$error = error_get_last();
+		if($error !== NULL){
+            echo <<< EEE
+
+[SHUTDOWN]
+ File: {$error['file']}
+ Line: {$error['line']}
+ Message: {$error['message']}
+ 
+EEE;
+        }
 	}
 ?>
