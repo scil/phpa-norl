@@ -32,7 +32,7 @@
      * end edit by Stefan Fischerländer
      */
      
-	include dirname(__FILE__).'/php-norl_include.php';
+	@include dirname(__FILE__).'/php-norl_include.php';
 
     for (;;)
     {
