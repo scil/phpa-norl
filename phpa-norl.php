@@ -14,7 +14,7 @@
     2007/07/08 - initial version of phpa-norl published
     
 */
-	register_shutdown_function('shutdown');
+	register_shutdown_function('__phpa__shutdown');
 	
     __phpa__setup();
     __phpa__print_info();
@@ -39,13 +39,13 @@
         /*
          * begin edit by Stefan Fischerländer
          */
-        $__phpa_line = myReadLine($__phpa_fh, __PHPA_PROMPT);
+        $__phpa_line = __phpa__myReadLine($__phpa_fh, __PHPA_PROMPT);
         if ($__phpa_line == __PHPA_EXIT_COMMAND)
         {
             echo PHP_EOL;
             break;
         } elseif( $__phpa_line == __PHPA_HISTORY_COMMAND ) {
-            showHistory($__phpa_myhist);
+            __phpa__showHistory($__phpa_myhist);
             continue;
         } elseif( preg_match('/^'.__PHPA_HISTORY_COMMAND.'\s*(\d+)$/', $__phpa_line, $__phpa_result) ) {
             $__phpa_line = $__phpa_myhist[$__phpa_result[1]];
@@ -93,7 +93,7 @@
      * @author Stefan Fischerländer
      * @return STRING input from keyboard, may contain line breaks
      */
-    function myReadLine($fh, $prompt)
+    function __phpa__myReadLine($fh, $prompt)
     {
         echo $prompt;
         $complete_line = '';
@@ -117,7 +117,7 @@
      * @author Stefan Fischerländer
      * @return STRING input from keyboard, may contain line breaks
      */
-    function showHistory($myhist)
+    function __phpa__showHistory($myhist)
     {
         echo "History:\n";
         for( $i=count($myhist)-1; $i>=0; $i--) {
@@ -228,10 +228,10 @@
     }
 
 
-	// This is our shutdown function, in
+	// This is our __phpa__shutdown function, in
 	// here we can do any last operations
 	// before the script is complete.
-	function shutdown() {
+	function __phpa__shutdown() {
 		$error = error_get_last();
 		if($error !== NULL){
             echo <<< EEE
