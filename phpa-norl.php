@@ -26,6 +26,11 @@
     define("__PHPA_EXIT_COMMAND", 'q');        // defines the command name to exit the shell
     define("__PHPA_MAX_HIST", 20);             // maximum number of history entries
     define("__PHPA_PROMPT", PHP_VERSION.' > ');
+    
+    define('__PHPA_HINT',true); 	//if you type '$_G' ,then click tab and enter ,then you can get hint '$_GET' .
+    define('__PHPA_HINT_STRICT',true); //'aBC' is thought to be function, 'ABC' all are upper to be constant ,others e.g. Abc to be Class ;
+    define('__PHPA_HINT_ONLYUSER',false); // only hint user function ,no internal function 
+    
     $__phpa_myhist = array();
     $__phpa_fh = fopen('php://stdin','rb') or die($php_errormsg);
     /*
@@ -39,7 +44,7 @@
         /*
          * begin edit by Stefan Fischerländer
          */
-        $__phpa_line = __phpa__myReadLine($__phpa_fh, __PHPA_PROMPT);
+        $__phpa_line = __phpa__myReadLine($__phpa_fh, __PHPA_PROMPT,__PHPA_HINT,__PHPA_HINT_STRICT);
         if ($__phpa_line == __PHPA_EXIT_COMMAND)
         {
             echo PHP_EOL;
@@ -93,7 +98,7 @@
      * @author Stefan Fischerländer
      * @return STRING input from keyboard, may contain line breaks
      */
-    function __phpa__myReadLine($fh, $prompt)
+    function __phpa__myReadLine($fh, $prompt,$usehint,$hintStrict)
     {
         echo $prompt;
         $complete_line = '';
@@ -101,8 +106,14 @@
             $line = fgets($fh,1024);
             if( !$line && strlen($line)==0 )        # this is true, when CTRL-D is pressed
                 die("\nUser pressed CTRL-D. phpa-norl quits.\n");
-            $line = rtrim($line);
-            $line = rtrim($line, ';'); // strip last ";"
+            $line = rtrim($line," \n\r\0\x0B;");
+            if( $usehint && substr($line,-1) == "\t"){
+				$hint=PHPAHint::hint(substr($line,0,-1),$hintStrict);
+				echo '[HINT]',PHP_EOL,"  ",count($hint)>0?implode('  ',$hint):"[no hint]", PHP_EOL;
+				unset($hint);
+				echo $prompt;
+				continue;
+            }
             $complete_line .= $line;
             if( substr($line,-1) != '#')
                 break;
@@ -137,6 +148,127 @@
 
 
 
+	class PHPAHint{
+		static $onlyuser = __PHPA_HINT_ONLYUSER;
+		static $strict = __PHPA_HINT_STRICT;
+		static function hint($str){
+			/**
+				with mark:
+					"\$",	"\$abc" //var or object
+					" abc->", " abc->n" //var or method of an object
+					" abc::", " abc::n" //constant or static method of a class
+					"new ", "new C" //class
+					"\\", "\N" // namespace
+				without mark:
+					"abc", "ABC", "Abc" //function ,constant, class 
+			*/
+			if (preg_match('/(?<mark>\$|(?<obj>[a-zA-Z_]\w*)->|(?<class>[a-zA-Z_]\w*)::|\bnew\s+|\\\)?(?<tosearch>[a-zA-Z_]\w*)?$/',$str,$result) ){
+				//print_r( $result);
+				//this re has two parts, mark and tosearch, all are optionl. so string '3' is matched ,its $result is array(0=>'') . this if is used to skip this situation.
+				if(count($result)>1){
+					$tosearch=isset($result['tosearch'])?$result['tosearch']:'';
+					$about='';
+					if(!empty($result['mark'])){
+						if($result['mark']=='$') $type='var';
+						elseif(!empty($result['obj'])) {$type='objField';$about=$result['obj'];}
+						elseif(!empty($result['class'])) {$type='classField';$about=$result['class'];}
+						elseif(substr($result['mark'],0,3)=='new') $type='class';
+						elseif($result['mark']=='\\') $type='ns';
+					}else {
+						if(self::$strict){
+							if(ord($tosearch)>96){
+								$type='fn';
+							}elseif(preg_match('/^[A-Z]+$/',$tosearch)){
+								$type='const';
+							}else $type='class';
+						}else
+							$type='mix';
+					}
+					return self::hint4($type,$tosearch,$about);
+				}
+			}
+			// always return array
+			return array();
+			
+		}
+		static function hint4($type,$tosearch,$about){
+			echo '[HINT TYPE] :',$type,PHP_EOL;
+			switch (strtolower($type)) {
+				case 'var':
+					return self::va($tosearch);
+					break;
+				case 'fn':
+					return self::fn($tosearch);
+					break;
+				case 'const':
+					return self::cons($tosearch);
+					break;
+				case 'mix':
+					return array_merge(self::fn($tosearch),self::cons($tosearch),  self::clas($tosearch));
+					break;
+				case 'objField':
+					return self::objField($about,$tosearch);
+					break;
+				case 'classField':
+					return self::classField($about,$tosearch);
+					break;
+				case 'class':
+					return self::clas($tosearch);
+					break;
+				case 'ns':
+					return self::ns($tosearch);
+					break;
+				default:
+					# code...
+					break;
+			}
+		}
+		static function va($str){
+			if (strlen($str)==0){
+				return array_keys($GLOBALS);
+			}else{
+				return self::filter(array_keys($GLOBALS) ,$str);
+			}
+		}
+		static function fn($str){
+			$func = get_defined_functions();
+			if(self::$onlyuser) $func=$func["user"];
+			else $func=array_merge($func["user"], $func["internal"]);
+			if (strlen($str)==0){
+				return $func;
+			}else{
+				return self::filter($func,$str);
+			}
+		}
+		static function cons($str){
+			if (strlen($str)==0){
+				return array_keys(get_defined_constants());
+			}else{
+				return self::filter(array_keys(get_defined_constants()),$str);
+			}
+		}
+		static function clas($str){
+			if (strlen($str)==0){
+				return get_declared_classes();
+			}else{
+				return self::filter(get_declared_classes(),$str);
+			}
+		}
+		static function objField($obj,$tosearch){
+			
+		}
+		static function classField($class,$tosearch){
+			
+		}
+		private static function filter($array,$beginwith){
+		$n=array();
+		$len=strlen($beginwith);
+		foreach ($array as $value) {
+			if(substr($value,0,$len)==$beginwith) $n[]=$value;
+		}
+		return $n;
+	}
+	}
 
     function __phpa__rl_complete($line, $pos, $cursor)
     {
