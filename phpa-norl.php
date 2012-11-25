@@ -44,7 +44,7 @@
         /*
          * begin edit by Stefan Fischerländer
          */
-        $__phpa_line = __phpa__myReadLine($__phpa_fh, __PHPA_PROMPT,__PHPA_HINT,__PHPA_HINT_STRICT);
+        $__phpa_line = __phpa__myReadLine($__phpa_fh, __PHPA_PROMPT,__PHPA_HINT);
         if ($__phpa_line == __PHPA_EXIT_COMMAND)
         {
             echo PHP_EOL;
@@ -98,7 +98,7 @@
      * @author Stefan Fischerländer
      * @return STRING input from keyboard, may contain line breaks
      */
-    function __phpa__myReadLine($fh, $prompt,$usehint,$hintStrict)
+    function __phpa__myReadLine($fh, $prompt,$usehint)
     {
         echo $prompt;
         $complete_line = '';
@@ -108,7 +108,7 @@
                 die("\nUser pressed CTRL-D. phpa-norl quits.\n");
             $line = rtrim($line," \n\r\0\x0B;");
             if( $usehint && substr($line,-1) == "\t"){
-				$hint=PHPAHint::hint(substr($line,0,-1),$hintStrict);
+				$hint=PHPAHint::hint(substr($line,0,-1));
 				echo '[HINT]',PHP_EOL,"  ",count($hint)>0?implode('  ',$hint):"[no hint]", PHP_EOL;
 				unset($hint);
 				echo $prompt;
