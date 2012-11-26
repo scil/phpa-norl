@@ -31,6 +31,8 @@
     define('__PHPA_HINT_STRICT',true); //'aBC' is thought to be function, 'ABC' all are upper to be constant ,others e.g. Abc to be Class ;
     define('__PHPA_HINT_ONLYUSER',false); // only hint user function ,no internal function 
     
+    define('__PHPA_LOG_INHERIT',true);// restore last session
+    
     $__phpa_myhist = array();
     $__phpa_fh = fopen('php://stdin','rb') or die($php_errormsg);
     /*
@@ -38,6 +40,11 @@
      */
      
 	@include dirname(__FILE__).'/php-norl_include.php';
+	
+	// eval should be here, not in class PHPALog , because var scope.
+	if ( __PHPA_LOG_INHERIT ){
+			@eval(PHPALog::getinstance()->hist[0]);
+	}
 
     for (;;)
     {
@@ -67,6 +74,8 @@
         /*
          * end edit by Stefan Fischerländer
          */
+
+		PHPALog::log($__phpa_line);
 
         if (__phpa__is_immediate($__phpa_line))
             $__phpa_line = "return ($__phpa_line)";
@@ -268,6 +277,47 @@
 		}
 		return $n;
 	}
+	}
+
+	class PHPALog {
+		static $singleinstance=null;
+		public $hist = array();
+		private $f;
+		public $logging = true;
+		
+		static function getinstance($inheric=true,$file=''){
+			if(self::$singleinstance) return self::$singleinstance;
+			else {
+				$me=new PHPALog();
+				if(empty($file[0])) $file=dirname(__FILE__).'/phpa-norl_history.txt';
+				if($inheric && is_file($file)){
+					$me->hist[]=file_get_contents($file);
+				}
+				$f=fopen($file,'wb');
+				$me->f=$f;
+				return self::$singleinstance=$me;
+			}
+		}
+		function __destruct(){
+			$f=$this->f;
+			if($this->logging) fwrite($f, implode(';'.PHP_EOL, $this->hist).';' );
+			fclose($f);
+		}
+		static function log($line){
+			$me=self::getinstance();
+			if($me->logging) $me->hist[]=$line;
+		}
+		static function pause(){
+			$me=self::getinstance();
+			if($me->loggin){
+				$me->logging = false;
+				fwrite($me->f, implode(';'.PHP_EOL, $me->hist).';' );
+				$me->hist=array();
+			}
+		}
+		static function unpause(){
+			self::getinstance()->logging = true;
+		}
 	}
 
     function __phpa__rl_complete($line, $pos, $cursor)
