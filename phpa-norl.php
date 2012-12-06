@@ -31,7 +31,7 @@
     define('__PHPA_HINT_STRICT',true); //'aBC' is thought to be function, 'ABC' all are upper to be constant ,others e.g. Abc to be Class ;
     define('__PHPA_HINT_ONLYUSER',false); // only hint user function ,no internal function 
     
-    define('__PHPA_LOG_INHERIT',true);// restore last session
+    define('__PHPA_LOG_INHERIT',2);// 1: restore last session; 2:ask user; 
     
     $__phpa_myhist = array();
     $__phpa_fh = fopen('php://stdin','rb') or die($php_errormsg);
@@ -42,8 +42,16 @@
 	@include dirname(__FILE__).'/php-norl_include.php';
 	
 	// eval should be here, not in class PHPALog , because var scope.
-	if ( __PHPA_LOG_INHERIT ){
+	switch (__PHPA_LOG_INHERIT) {
+		case 2:
+			$__phpa_line=__phpa__myReadLine($__phpa_fh, '[Enable Last Session History?]'.PHP_EOL.' (Y)/n : ', __PHPA_HINT);
+			if($__phpa_line=='n')
+				break;
+		case 1:
 			@eval(PHPALog::getinstance()->hist[0]);
+			break;
+		default:
+			break;
 	}
 
     for (;;)
