@@ -70,7 +70,7 @@
         } elseif( preg_match('/^'.__PHPA_HISTORY_COMMAND.'\s*(\d+)$/', $__phpa_line, $__phpa_result) ) {
             $__phpa_line = $__phpa_myhist[$__phpa_result[1]];
             array_splice($__phpa_myhist, $__phpa_result[1], 1);
-            echo __PHPA_PROMPT.$__phpa_line.PHP_EOL;
+            echo __PHPA_PROMPT,$__phpa_line.PHP_EOL;
         }
         if (strlen($__phpa_line) == 0)
             continue;
@@ -95,7 +95,7 @@
             if (is_bool($__phpa_ret))
                 echo ($__phpa_ret ? "true" : "false");
             else if (is_string($__phpa_ret))
-                echo "'" . addcslashes($__phpa_ret, "\0..\37\177..\377")  . "'";
+                echo "'" , addcslashes($__phpa_ret, "\0..\37\177..\377")  , "'";
             else if (!is_null($__phpa_ret))
                 print_r($__phpa_ret);
         }
@@ -195,7 +195,7 @@
 						if(self::$strict){
 							if(ord($tosearch)>96){
 								$type='fn';
-							}elseif(preg_match('/^[A-Z]+$/',$tosearch)){
+							}elseif(preg_match('/^[A-Z_]+$/',$tosearch)){
 								$type='const';
 							}else $type='class';
 						}else
@@ -278,13 +278,13 @@
 			
 		}
 		private static function filter($array,$beginwith){
-		$n=array();
-		$len=strlen($beginwith);
-		foreach ($array as $value) {
-			if(substr($value,0,$len)==$beginwith) $n[]=$value;
+			$n=array();
+			$len=strlen($beginwith);
+			foreach ($array as $value) {
+				if(substr($value,0,$len)==$beginwith) $n[]=$value;
+			}
+			return $n;
 		}
-		return $n;
-	}
 	}
 
 	class PHPALog {
