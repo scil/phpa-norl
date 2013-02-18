@@ -20,26 +20,33 @@
     __phpa__print_info();
 
     /*
-     * begin edit by Stefan Fischerländer
+     * begin edit by Stefan Fischerländer and scil
      */
-    define("__PHPA_HISTORY_COMMAND", 'h');     // defines the command name for history manipulation
-    define("__PHPA_EXIT_COMMAND", 'q');        // defines the command name to exit the shell
-    define("__PHPA_MAX_HIST", 20);             // maximum number of history entries
-    define("__PHPA_PROMPT", PHP_VERSION.' > ');
-    
-    define('__PHPA_HINT',true);     //if you type '$_G' ,then click tab and enter ,then you can get hint '$_GET' .
-    define('__PHPA_HINT_STRICT',true); //'aBC' is thought to be function, 'ABC' all are upper to be constant ,others e.g. Abc to be Class ;
-    define('__PHPA_HINT_ONLYUSER',false); // only hint user function ,no internal function 
-    
-    define('__PHPA_LOG_INHERIT',2);// 1: restore last session; 2:ask user; 
+    @include dirname(__FILE__).'/php-norl_include.php';
+
+    foreach( array(
+        "__PHPA_HISTORY_COMMAND" =>  'h' ,     // defines the command name for history manipulation
+        "__PHPA_EXIT_COMMAND" =>  'q' ,        // defines the command name to exit the shell
+        "__PHPA_MAX_HIST" =>  20 ,             // maximum number of history entries
+        "__PHPA_PROMPT" =>  PHP_VERSION.' > ' ,
+        
+        '__PHPA_HINT' => true ,     //if you type '$_G'  => then click tab and enter  => then you can get hint '$_GET' .
+        '__PHPA_HINT_STRICT' => true , //'aBC' is thought to be function =>  'ABC' all are upper to be constant  => others e.g. Abc to be Class ;
+        '__PHPA_HINT_ONLYUSER' => false , // only hint user function  => no internal function
+        
+        '__PHPA_LOG_INHERIT' => 2 ,// 1: restore last session; 2:ask user; 0: ignore last session
+        
+        ) as $config => $value){
+            defined($config) || define($config,$value);
+        }
+    unset($config, $value);
     
     $__phpa_myhist = array();
     $__phpa_fh = fopen('php://stdin','rb') or die($php_errormsg);
     /*
-     * end edit by Stefan Fischerländer
+     * end edit by Stefan Fischerländer and scil
      */
      
-    @include dirname(__FILE__).'/php-norl_include.php';
     
     // eval should be here, not in class PHPALog , because var scope.
     switch (__PHPA_LOG_INHERIT) {
