@@ -317,7 +317,7 @@
 		}
 		static function pause(){
 			$me=self::getinstance();
-			if($me->loggin){
+			if($me->logging){
 				$me->logging = false;
 				fwrite($me->f, implode(';'.PHP_EOL, $me->hist).';' );
 				$me->hist=array();
@@ -363,7 +363,7 @@
             else if (($sq) || ($dq))
             {
                 if ($c == "\\")
-                    $i++;
+		    $i++;
             }
             else
                 $code .= $c;
@@ -395,11 +395,11 @@
         ob_end_clean();
         $x = strip_tags($x);
         $x = explode("\n", $x);
-        $s = array("Build Date => ", "Build Date ");
-        foreach ($x as $i)
-            foreach ($s as $j)
-                if (substr($i, 0, strlen($j)) == $j)
-                    return trim(substr($i, strlen($j)));
+        $len=strlen("Build Date ");
+        foreach ($x as $i) {
+            if( substr($i,0,$len) == 'Build Date ')
+                return trim(substr($i,$len),' =>');
+        }
         return "???";
     }
 
