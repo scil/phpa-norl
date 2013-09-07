@@ -53,7 +53,8 @@
         case 2:
             $__phpa_line=__phpa__myReadLine($__phpa_fh, '[Enable Last Session History?]'.PHP_EOL.' (Y)/n : ', __PHPA_HINT);
             if($__phpa_line=='n')
-                break;
+                PHPALog::getinstance(false);
+            break;
         case 1:
             @eval(PHPALog::getinstance()->hist[0]);
             break;
@@ -313,7 +314,7 @@
                 return self::$singleinstance=$me;
             }
         }
-        function __destruct(){
+        function write(){
             $f=$this->f;
             if($this->logging) fwrite($f, implode(';'.PHP_EOL, $this->hist).';' );
             fclose($f);
@@ -429,6 +430,9 @@
     // here we can do any last operations
     // before the script is complete.
     function __phpa__shutdown() {
+        $log=PHPALog::getinstance();
+        $log->write();
+        
         $error = error_get_last();
         if($error !== NULL){
             echo <<< EEE
