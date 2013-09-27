@@ -5,17 +5,17 @@
 
     Stefan Fischerländer <stefan@fischerlaender.de>, http://www.fischerlaender.net/php/phpa-norl
     original version: David Phillips <david@acz.org>, http://david.acz.org/phpa/
-    
-    
+
+
     2010/07/16 - register_shutdown_function
     2010/07/16 - now using PHP_EOL
     2010/07/16 - replaced deprecated split function
     2007/07/10 - CTRL-D now exits the script instead of entering an infinite loop
     2007/07/08 - initial version of phpa-norl published
-    
+
 */
     register_shutdown_function('__phpa__shutdown');
-    
+
     __phpa__setup();
     __phpa__print_info();
 
@@ -23,31 +23,32 @@
      * begin edit by Stefan Fischerländer and scil
      */
     @include dirname(__FILE__).'/php-norl_include.php';
+    $__phpa_aliases = is_file(dirname(__FILE__).'/php-norl_aliases.php')? (include dirname(__FILE__).'/php-norl_aliases.php' :array();
 
     foreach( array(
         "__PHPA_HISTORY_COMMAND" =>  'h' ,     // defines the command name for history manipulation
         "__PHPA_EXIT_COMMAND" =>  'q' ,        // defines the command name to exit the shell
         "__PHPA_MAX_HIST" =>  20 ,             // maximum number of history entries
         "__PHPA_PROMPT" =>  PHP_VERSION.' > ' ,
-        
+
         '__PHPA_HINT' => true ,     //if you type '$_G'  => then click tab and enter  => then you can get hint '$_GET' .
         '__PHPA_HINT_STRICT' => true , //'aBC' is thought to be function =>  'ABC' all are upper to be constant  => others e.g. Abc to be Class ;
         '__PHPA_HINT_ONLYUSER' => false , // only hint user function  => no internal function
-        
+
         '__PHPA_LOG_INHERIT' => 2 ,// 1: restore last session; 2:ask user; 0: ignore last session
-        
+
         ) as $config => $value){
             defined($config) || define($config,$value);
         }
     unset($config, $value);
-    
+
     $__phpa_myhist = array();
     $__phpa_fh = fopen('php://stdin','rb') or die($php_errormsg);
     /*
      * end edit by Stefan Fischerländer and scil
      */
-     
-    
+
+
     // eval should be here, not in class PHPALog , because var scope.
     switch (__PHPA_LOG_INHERIT) {
         case 2:
@@ -79,6 +80,13 @@
             $__phpa_line = $__phpa_myhist[$__phpa_result[1]];
             array_splice($__phpa_myhist, $__phpa_result[1], 1);
             echo __PHPA_PROMPT,$__phpa_line.PHP_EOL;
+            unset($__phpa_result);
+        } elseif( preg_match('/^%\w+\s*$/',$__phpa_line, $__phpa_result) ){
+            if(isset($__phpa_aliases[$__phpa_result[1]])){
+                $__phpa_line=$__phpa_aliases[$__phpa_result[1]];
+                echo __PHPA_PROMPT,$__phpa_line.PHP_EOL;
+            }
+            unset($__phpa_result);
         }
         if (strlen($__phpa_line) == 0)
             continue;
@@ -185,7 +193,7 @@
                     "new ", "new C" //class
                     "\\", "\N" // namespace
                 without mark:
-                    "abc", "ABC", "Abc" //function ,constant, class 
+                    "abc", "ABC", "Abc" //function ,constant, class
             */
             if (preg_match('/(?<mark>\$|(?<obj>[a-zA-Z_]\w*)->|(?<class>[a-zA-Z_]\w*)::|\bnew\s+|\\\)?(?<tosearch>[a-zA-Z_]\w*)?$/',$str,$result) ){
                 //print_r( $result);
@@ -214,7 +222,7 @@
             }
             // always return array
             return array();
-            
+
         }
         static function hint4($type,$tosearch,$about){
             echo '[HINT TYPE] :',$type,PHP_EOL;
@@ -280,10 +288,10 @@
             }
         }
         static function objField($obj,$tosearch){
-            
+
         }
         static function classField($class,$tosearch){
-            
+
         }
         private static function filter($array,$beginwith){
             $n=array();
@@ -300,7 +308,7 @@
         public $hist = array();
         private $f;
         public $logging = true;
-        
+
         static function getinstance($inheric=true,$file=''){
             if(self::$singleinstance) return self::$singleinstance;
             else {
@@ -432,7 +440,7 @@
     function __phpa__shutdown() {
         $log=PHPALog::getinstance();
         $log->write();
-        
+
         $error = error_get_last();
         if($error !== NULL){
             echo <<< EEE
@@ -441,7 +449,7 @@
  File: {$error['file']}
  Line: {$error['line']}
  Message: {$error['message']}
- 
+
 EEE;
         }
     }
