@@ -22,8 +22,8 @@
     /*
      * begin edit by Stefan Fischerländer and scil
      */
-    @include dirname(__FILE__).'/php-norl_include.php';
-    $__phpa_aliases = is_file(dirname(__FILE__).'/php-norl_aliases.php')? (include dirname(__FILE__).'/php-norl_aliases.php') :array();
+    @include dirname(__FILE__).'/include.php';
+    $__phpa_aliases = is_file(dirname(__FILE__).'/aliases.php')? (include dirname(__FILE__).'/aliases.php') :array();
 
     foreach( array(
         "__PHPA_HISTORY_COMMAND" =>  'h' ,     // defines the command name for history manipulation
@@ -313,7 +313,7 @@
             if(self::$singleinstance) return self::$singleinstance;
             else {
                 $me=new PHPALog();
-                if(empty($file[0])) $file=dirname(__FILE__).'/phpa-norl_history.txt';
+                if(empty($file[0])) $file=dirname(__FILE__).'/history.txt';
                 if($inheric && is_file($file)){
                     $me->hist[]=file_get_contents($file);
                 }
