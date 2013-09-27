@@ -23,7 +23,7 @@
      * begin edit by Stefan Fischerländer and scil
      */
     @include dirname(__FILE__).'/php-norl_include.php';
-    $__phpa_aliases = is_file(dirname(__FILE__).'/php-norl_aliases.php')? (include dirname(__FILE__).'/php-norl_aliases.php' :array();
+    $__phpa_aliases = is_file(dirname(__FILE__).'/php-norl_aliases.php')? (include dirname(__FILE__).'/php-norl_aliases.php') :array();
 
     foreach( array(
         "__PHPA_HISTORY_COMMAND" =>  'h' ,     // defines the command name for history manipulation
@@ -81,7 +81,7 @@
             array_splice($__phpa_myhist, $__phpa_result[1], 1);
             echo __PHPA_PROMPT,$__phpa_line.PHP_EOL;
             unset($__phpa_result);
-        } elseif( preg_match('/^%\w+\s*$/',$__phpa_line, $__phpa_result) ){
+        } elseif( preg_match('/^%(\w+)\s*$/',$__phpa_line, $__phpa_result) ){
             if(isset($__phpa_aliases[$__phpa_result[1]])){
                 $__phpa_line=$__phpa_aliases[$__phpa_result[1]];
                 echo __PHPA_PROMPT,$__phpa_line.PHP_EOL;
